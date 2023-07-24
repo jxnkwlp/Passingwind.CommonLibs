@@ -1,0 +1,73 @@
+name: build and pack
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs: 
+      push_nuget:
+        description: "Push nuget packages"
+        required: true
+        type: boolean
+        default: true 
+      push_release:
+        description: "Create release"
+        required: true
+        type: boolean
+        default: true
+
+env: 
+  PUSH_NUGET: ${{ inputs.push_nuget || 'false' }}
+  PUSH_RELEASE: ${{ inputs.push_release || 'false' }}
+  # GITCI_NEXT_VERSION: "0.0.1+${{env.GITHUB_SHA_SHORT}}"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+            
+      - name: Set environment vars
+        uses: rlespinasse/github-slug-action@3.6.0
+        
+      - id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            src:
+              - 'src/**'
+
+      - name: dotnet restore
+        run: dotnet restore Passingwind.CommonLibs.sln
+
+      - name: dotnet build
+        run: dotnet build --no-restore -c Release Passingwind.CommonLibs.sln
+
+      - name: dotnet pack
+        run: dotnet pack --no-build --no-restore -c Release --property:PackageOutputPath=${{github.workspace}}/pack_output Passingwind.CommonLibs.sln
+
+      - name: dotnet package push
+        #if: steps.changes.outputs.src == 'true'
+        if: ${{ env.PUSH_NUGET == 'true' }}
+        run: dotnet nuget push ${{github.workspace}}/pack_output/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TOKEN}} --source https://api.nuget.org/v3/index.json
+
+      #- name: Create Release
+      #  #if: steps.changes.outputs.src == 'true'
+      #  uses: ncipollo/release-action@v1
+      #  if: ${{ env.PUSH_RELEASE == 'true' }}
+      #  with:
+      #    tag: v${{env.GITCI_NEXT_VERSION}}
+      #    artifacts: ./changeslog*, ./pack_output/*
+      #    bodyFile: ./changeslog.md
+      #    prerelease: false
+      #    token: ${{ secrets.GITHUB_TOKEN }}
