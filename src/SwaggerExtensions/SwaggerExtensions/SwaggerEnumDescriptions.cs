@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
@@ -54,6 +54,8 @@ namespace Swashbuckle.AspNetCore.SwaggerGen
                         ["values"] = enumKeyValue,
                     }
                 );
+
+                schema.Description = string.Join("<br/> ", names.Select(x => $"{Convert.ToInt32(Enum.Parse(type, x))}:{x}"));
             }
         }
     }
