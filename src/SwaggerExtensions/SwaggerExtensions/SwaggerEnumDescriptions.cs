@@ -55,7 +55,7 @@ namespace Swashbuckle.AspNetCore.SwaggerGen
                     }
                 );
 
-                schema.Description = string.Join("<br/> ", names.Select(x => $"{Convert.ToInt32(Enum.Parse(type, x))}:{x}"));
+                schema.Description += string.Join("<br/> ", names.Select(x => $"{Convert.ToInt32(Enum.Parse(type, x))}:{x}"));
             }
         }
     }

@@ -1,11 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Concurrent;
+using System.Text;
 
 namespace Swashbuckle.AspNetCore.SwaggerGen
 {
     internal static class Extensions
     {
+        private static readonly ConcurrentDictionary<Type, string> TypeSimpleNameCache = new ConcurrentDictionary<Type, string>();
+
         public static string RemovePostFix(this string value, string postfix)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -28,55 +30,40 @@ namespace Swashbuckle.AspNetCore.SwaggerGen
             return value;
         }
 
-        public static string ToSimpleTypeString(this Type type, bool trimArgCount = true)
+        public static string ToSimpleTypeName(this Type type)
+        {
+            return TypeSimpleNameCache.GetOrAdd(type, (t) => BuildSimpleTypeName(t));
+        }
+
+        private static string BuildSimpleTypeName(Type type)
         {
             if (type.IsGenericType)
             {
-                var genericArgs = type.GetGenericArguments().ToList();
+                StringBuilder sb = new StringBuilder();
 
-                return HandleTypeArguments(type, trimArgCount, genericArgs);
+                string name = type.Name;
+                if (name.IndexOf("`") > -1)
+                {
+                    name = name.Substring(0, name.IndexOf("`"));
+                }
+
+                sb.Append(name);
+
+                var argumenTypes = type.GetGenericArguments();
+                if (argumenTypes.Length > 0)
+                {
+                    sb.Append("<");
+                    foreach (var item in argumenTypes)
+                    {
+                        sb.Append(BuildSimpleTypeName(item));
+                    }
+                    sb.Append(">");
+                }
+
+                return sb.ToString();
             }
 
             return type.Name;
-        }
-
-        private static string HandleTypeArguments(Type t, bool trimArgCount, List<Type> availableArguments)
-        {
-            if (t.IsGenericType)
-            {
-                string value = t.Name;
-                if (trimArgCount && value.IndexOf("`") > -1)
-                {
-                    value = value.Substring(0, value.IndexOf("`"));
-                }
-
-                if (t.DeclaringType != null)
-                {
-                    // This is a nested type, build the nesting type first
-                    value = HandleTypeArguments(t.DeclaringType, trimArgCount, availableArguments) + "+" + value;
-                }
-
-                // Build the type arguments (if any)
-                string argString = "";
-                var thisTypeArgs = t.GetGenericArguments();
-                for (int i = 0; i < thisTypeArgs.Length && availableArguments.Count > 0; i++)
-                {
-                    if (i != 0) argString += ", ";
-
-                    argString += ToSimpleTypeString(availableArguments[0], trimArgCount);
-                    availableArguments.RemoveAt(0);
-                }
-
-                // If there are type arguments, add them with < >
-                if (argString.Length > 0)
-                {
-                    value += "<" + argString + ">";
-                }
-
-                return value;
-            }
-
-            return t.Name;
         }
     }
 }

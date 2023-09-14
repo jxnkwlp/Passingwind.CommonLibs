@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,60 +8,90 @@ namespace Swashbuckle.AspNetCore.SwaggerGen
 {
     public static class SwaggerGenOptionsExtensions
     {
-        private static readonly Dictionary<string, int> OperationIds = new Dictionary<string, int>();
-        private static readonly Dictionary<ApiDescription, string> OperationIdCache = new Dictionary<ApiDescription, string>();
+        private static readonly ConcurrentDictionary<string, int> OperationIdConflicts = new ConcurrentDictionary<string, int>();
+        private static readonly ConcurrentDictionary<ApiDescription, string> OperationIdCache = new ConcurrentDictionary<ApiDescription, string>();
 
+        private static readonly ConcurrentDictionary<string, int> SchemaIdConflicts = new ConcurrentDictionary<string, int>();
+        private static readonly ConcurrentDictionary<Type, string> SchemaIdCache = new ConcurrentDictionary<Type, string>();
+
+        [Obsolete("Use 'ApplyExtensions' ", error: true)]
         public static void GenerateSchemaIdAndOperationId(this SwaggerGenOptions options, bool removeDtoFix = true, bool allowDuplicateOperationId = false)
         {
-            //  
-            options.SchemaFilter<SwaggerEnumDescriptions>();
+            throw new NotImplementedException();
+        }
+
+        public static void ApplyExtensions(this SwaggerGenOptions swaggerGenOptions, SwaggerExtensionOptions options = null)
+        {
+            options = options ?? new SwaggerExtensionOptions();
             // 
-            options.CustomSchemaIds(type =>
+            swaggerGenOptions.SchemaFilter<SwaggerEnumDescriptions>();
+            // 
+            swaggerGenOptions.CustomSchemaIds(type => GenerateSchemaId(type, options));
+            //
+            swaggerGenOptions.CustomOperationIds(e => GenerateOperationIds(e, options));
+        }
+
+        private static string GenerateSchemaId(Type type, SwaggerExtensionOptions options)
+        {
+            return SchemaIdCache.GetOrAdd(type, (typeItem) =>
             {
-                var typeString = type.ToSimpleTypeString(true);
+                var typeString = typeItem.ToSimpleTypeName();
 
                 if (typeString.Contains("<"))
                 {
-                    var wrapType = typeString.Substring(0, typeString.IndexOf("<"));
-                    var argType = typeString.Substring(typeString.IndexOf("<") + 1, typeString.Length - wrapType.Length - 2);
+                    var typeNames = typeString.Split('<', '>').ToList();
+                    typeNames.Reverse();
 
-                    typeString = argType.Replace(", ", null) + wrapType;
+                    typeString = string.Concat(typeNames);
                 }
 
-                if (removeDtoFix)
-                    return typeString.Replace("Dto", null);
+                if (options.RemoveDtoFix)
+                    typeString = typeString.Replace("Dto", null);
 
-                return typeString;
-            });
-            //
-            options.CustomOperationIds(e =>
-            {
-                string action = e.ActionDescriptor.RouteValues["action"];
-                string controller = e.ActionDescriptor.RouteValues["controller"];
-                string method = e.HttpMethod;
-
-                if (OperationIdCache.ContainsKey(e))
+                if (options.ConflictingSchemaIdResolver == null)
                 {
-                    return OperationIdCache[e];
+                    options.ConflictingSchemaIdResolver = (_, s) => HandleConflictingTypeSchemaId(s);
                 }
+
+                return options.ConflictingSchemaIdResolver(typeItem, typeString);
+            });
+        }
+
+        private static string HandleConflictingTypeSchemaId(string schemaId)
+        {
+            if (SchemaIdConflicts.ContainsKey(schemaId))
+            {
+                SchemaIdConflicts[schemaId]++;
+                return schemaId + SchemaIdConflicts[schemaId];
+            }
+
+            SchemaIdConflicts[schemaId] = 0;
+            return schemaId;
+        }
+
+        private static string GenerateOperationIds(ApiDescription apiDescription, SwaggerExtensionOptions options)
+        {
+            return OperationIdCache.GetOrAdd(apiDescription, (apiItem) =>
+            {
+                string action = apiItem.ActionDescriptor.RouteValues["action"];
+                string controller = apiItem.ActionDescriptor.RouteValues["controller"];
+                string method = apiItem.HttpMethod;
 
                 var operationId = GenerateApiOperationId(method, controller, action);
 
-                if (!allowDuplicateOperationId)
+                if (!options.AllowDuplicateOperationId)
                 {
-                    if (OperationIds.ContainsKey(operationId))
+                    if (OperationIdConflicts.ContainsKey(operationId))
                     {
-                        OperationIds[operationId]++;
+                        OperationIdConflicts[operationId]++;
 
-                        operationId = operationId + "_" + OperationIds[operationId];
+                        operationId += OperationIdConflicts[operationId];
                     }
                     else
                     {
-                        OperationIds[operationId] = 0;
+                        OperationIdConflicts[operationId] = 0;
                     }
                 }
-
-                OperationIdCache[e] = operationId;
 
                 return operationId;
             });

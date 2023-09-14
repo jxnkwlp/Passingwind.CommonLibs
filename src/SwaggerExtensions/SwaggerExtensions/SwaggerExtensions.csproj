@@ -7,8 +7,11 @@
         <Authors>Passingwind</Authors>
         <PackageProjectUrl>https://github.com/jxnkwlp/Passingwind.CommonLibs</PackageProjectUrl>
         <RepositoryUrl>https://github.com/jxnkwlp/Passingwind.CommonLibs</RepositoryUrl>
-        <RepositoryType>github</RepositoryType>
-        <PackageVersion>0.3.0</PackageVersion>
+        <RepositoryType>git</RepositoryType>
+        <GenerateDocumentationFile>False</GenerateDocumentationFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <IncludeSymbols>True</IncludeSymbols>
+        <PackageVersion>0.4.0</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>
