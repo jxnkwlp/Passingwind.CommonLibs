@@ -4,9 +4,9 @@ using System.Collections.Specialized;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
-namespace Passingwind.Authentication.Saml2;
+namespace Passingwind.AspNetCore.Authentication.Saml2;
 
-static class Extensions
+internal static class Extensions
 {
     public static ITfoxtec.Identity.Saml2.Http.HttpRequest ToGenericHttpRequest(this HttpRequest request, bool readBodyAsString = false)
     {

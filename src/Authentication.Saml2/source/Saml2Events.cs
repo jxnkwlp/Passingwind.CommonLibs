@@ -5,8 +5,11 @@ using ITfoxtec.Identity.Saml2;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace Passingwind.Authentication.Saml2;
+namespace Passingwind.AspNetCore.Authentication.Saml2;
 
+/// <summary>
+/// 
+/// </summary>
 public class Saml2Events : RemoteAuthenticationEvents
 {
     /// <summary>
@@ -76,14 +79,30 @@ public class Saml2Events : RemoteAuthenticationEvents
     public virtual Task SecurityTokenValidated(SecurityTokenValidatedContext context) => OnSecurityTokenValidated(context);
 }
 
+/// <summary>
+/// 
+/// </summary>
 public class RedirectContext : PropertiesContext<Saml2Options>
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="scheme"></param>
+    /// <param name="options"></param>
+    /// <param name="properties"></param>
     public RedirectContext(HttpContext context, AuthenticationScheme scheme, Saml2Options options, AuthenticationProperties? properties) : base(context, scheme, options, properties)
     {
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public Saml2AuthnRequest Saml2AuthnRequest { get; set; } = default!;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public Saml2RedirectBinding RedirectBinding { get; set; } = default!;
 
     /// <summary>
@@ -97,50 +116,118 @@ public class RedirectContext : PropertiesContext<Saml2Options>
     public void HandleResponse() => Handled = true;
 }
 
+/// <summary>
+/// 
+/// </summary>
 public class RemoteSignOutContext : RemoteAuthenticationContext<Saml2Options>
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="scheme"></param>
+    /// <param name="options"></param>
+    /// <param name="properties"></param>
     public RemoteSignOutContext(HttpContext context, AuthenticationScheme scheme, Saml2Options options, AuthenticationProperties? properties) : base(context, scheme, options, properties)
     {
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public Saml2AuthnResponse Saml2AuthnResponse { get; set; } = default!;
 }
 
+/// <summary>
+/// 
+/// </summary>
 public class MessageReceivedContext : RemoteAuthenticationContext<Saml2Options>
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="scheme"></param>
+    /// <param name="options"></param>
+    /// <param name="properties"></param>
     public MessageReceivedContext(HttpContext context, AuthenticationScheme scheme, Saml2Options options, AuthenticationProperties? properties) : base(context, scheme, options, properties)
     {
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public Saml2AuthnResponse Saml2AuthnResponse { get; set; } = default!;
 }
 
+/// <summary>
+/// 
+/// </summary>
 public class SecurityTokenReceivedContext : RemoteAuthenticationContext<Saml2Options>
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="scheme"></param>
+    /// <param name="options"></param>
+    /// <param name="properties"></param>
     public SecurityTokenReceivedContext(HttpContext context, AuthenticationScheme scheme, Saml2Options options, AuthenticationProperties? properties) : base(context, scheme, options, properties)
     {
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public Saml2AuthnResponse Saml2AuthnResponse { get; set; } = default!;
 }
 
+/// <summary>
+/// 
+/// </summary>
 public class SecurityTokenValidatedContext : RemoteAuthenticationContext<Saml2Options>
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="scheme"></param>
+    /// <param name="options"></param>
+    /// <param name="principal"></param>
+    /// <param name="properties"></param>
     public SecurityTokenValidatedContext(HttpContext context, AuthenticationScheme scheme, Saml2Options options, ClaimsPrincipal principal, AuthenticationProperties? properties) : base(context, scheme, options, properties)
     {
         Principal = principal;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public Saml2AuthnResponse Saml2AuthnResponse { get; set; } = default!;
 }
 
+/// <summary>
+/// 
+/// </summary>
 public class AuthenticationFailedContext : RemoteAuthenticationContext<Saml2Options>
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="scheme"></param>
+    /// <param name="options"></param>
     public AuthenticationFailedContext(HttpContext context, AuthenticationScheme scheme, Saml2Options options) : base(context, scheme, options, null)
     {
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public Saml2AuthnResponse Saml2AuthnResponse { get; set; } = default!;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public Exception Exception { get; set; } = default!;
 }

@@ -2,6 +2,8 @@
 
 ASP.NET Core authentication handler for the ApiKey protocol
 
+[![NuGet](https://img.shields.io/nuget/v/Passingwind.AspNetCore.Authentication.ApiKey?style=flat-square)](https://www.nuget.org/packages/Passingwind.AspNetCore.Authentication.ApiKey)
+
 ## Quickstart
 
 ``` cs

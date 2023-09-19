@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.Schemas.Metadata;
 
-namespace Passingwind.Authentication.Saml2.Configuration;
+namespace Passingwind.AspNetCore.Authentication.Saml2.Configuration;
 
+/// <summary>
+/// 
+/// </summary>
 public class ConfigurationManager : IConfigurationManager
 {
     private Saml2Configuration? _saml2Configuration;
@@ -16,6 +19,12 @@ public class ConfigurationManager : IConfigurationManager
     private readonly Uri _idpMetadataUri;
     private readonly HttpClient _httpClient;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="options"></param>
+    /// <param name="idpMetadataUrl"></param>
+    /// <param name="httpClient"></param>
     public ConfigurationManager(Saml2Options options, Uri idpMetadataUrl, HttpClient httpClient)
     {
         _options = options;
@@ -23,6 +32,11 @@ public class ConfigurationManager : IConfigurationManager
         _httpClient = httpClient;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<Saml2Configuration> GetConfigurationAsync(CancellationToken cancellationToken = default)
     {
         if (_saml2Configuration != null)
@@ -51,7 +65,7 @@ public class ConfigurationManager : IConfigurationManager
             var metadataGetResponse = await _httpClient.GetAsync(_idpMetadataUri, cancellationToken);
             metadataGetResponse.EnsureSuccessStatusCode();
 
-            var metadataString = await metadataGetResponse.Content.ReadAsStringAsync();
+            var metadataString = await metadataGetResponse.Content.ReadAsStringAsync(cancellationToken);
             entityDescriptor.ReadIdPSsoDescriptor(metadataString);
         }
 

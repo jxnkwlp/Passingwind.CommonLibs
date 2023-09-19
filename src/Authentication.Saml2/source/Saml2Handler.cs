@@ -10,24 +10,42 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Passingwind.Authentication.Saml2;
+namespace Passingwind.AspNetCore.Authentication.Saml2;
 
+/// <summary>
+/// 
+/// </summary>
 public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenticationSignOutHandler
 {
     private Saml2Configuration? _configuration;
     private const string RelayStateName = "State";
     private const string CorrelationProperty = ".xsrf";
 
+    /// <summary>
+    /// 
+    /// </summary>
     protected new Saml2Events Events
     {
         get { return (Saml2Events)base.Events; }
         set { base.Events = value; }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="options"></param>
+    /// <param name="logger"></param>
+    /// <param name="encoder"></param>
+    /// <param name="clock"></param>
     public Saml2Handler(IOptionsMonitor<Saml2Options> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
     {
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="properties"></param>
+    /// <returns></returns>
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {
         properties ??= new AuthenticationProperties();
@@ -43,13 +61,15 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
             properties.RedirectUri = OriginalPathBase + OriginalPath + Request.QueryString;
         }
 
-        var saml2AuthnRequest = new Saml2AuthnRequest(_configuration);
-        saml2AuthnRequest.ForceAuthn = Options.ForceAuthn;
-        saml2AuthnRequest.NameIdPolicy = Options.NameIdPolicy;
-        saml2AuthnRequest.RequestedAuthnContext = new RequestedAuthnContext
+        var saml2AuthnRequest = new Saml2AuthnRequest(_configuration)
         {
-            Comparison = AuthnContextComparisonTypes.Exact,
-            AuthnContextClassRef = new string[] { AuthnContextClassTypes.PasswordProtectedTransport.OriginalString },
+            ForceAuthn = Options.ForceAuthn,
+            NameIdPolicy = Options.NameIdPolicy,
+            RequestedAuthnContext = new RequestedAuthnContext
+            {
+                Comparison = AuthnContextComparisonTypes.Exact,
+                AuthnContextClassRef = new string[] { AuthnContextClassTypes.PasswordProtectedTransport.OriginalString },
+            }
         };
 
         var relayStateQuery = new Dictionary<string, string>();
@@ -84,11 +104,20 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
         Response.Redirect(binding.RedirectLocation.OriginalString);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="properties"></param>
+    /// <returns></returns>
     public Task SignOutAsync(AuthenticationProperties? properties)
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     protected override async Task<HandleRequestResult> HandleRemoteAuthenticateAsync()
     {
         if (_configuration == null)
