@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Passingwind.SwaggerExtensio
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Passingwind.AspNetCore.Authentication.Saml2", "src\Passingwind.AspNetCore.Authentication.Saml2\Passingwind.AspNetCore.Authentication.Saml2.csproj", "{4ED083F0-7B73-4380-A4F5-164474FDCF82}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Passingwind.AspNetCore.Authentication.ApiKey", "src\Authentication.ApiKey\source\Passingwind.AspNetCore.Authentication.ApiKey.csproj", "{F7FE0AD3-B69F-4F10-8EA4-E581EBE4A2AC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{4ED083F0-7B73-4380-A4F5-164474FDCF82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4ED083F0-7B73-4380-A4F5-164474FDCF82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4ED083F0-7B73-4380-A4F5-164474FDCF82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7FE0AD3-B69F-4F10-8EA4-E581EBE4A2AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7FE0AD3-B69F-4F10-8EA4-E581EBE4A2AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7FE0AD3-B69F-4F10-8EA4-E581EBE4A2AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7FE0AD3-B69F-4F10-8EA4-E581EBE4A2AC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,6 +47,7 @@ Global
 		{41CC2AD6-8FDC-4F00-8CF1-94C89666137E} = {D7A92342-2C8A-4121-8824-95AEF5856AAF}
 		{300C8EF1-B040-4F50-BA65-175EE5A82A0F} = {CE8B3FAE-E7B7-4EB6-BEB5-716F2B91A315}
 		{4ED083F0-7B73-4380-A4F5-164474FDCF82} = {CE8B3FAE-E7B7-4EB6-BEB5-716F2B91A315}
+		{F7FE0AD3-B69F-4F10-8EA4-E581EBE4A2AC} = {CE8B3FAE-E7B7-4EB6-BEB5-716F2B91A315}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AB481C2D-55C1-486C-873D-408B11F77F30}

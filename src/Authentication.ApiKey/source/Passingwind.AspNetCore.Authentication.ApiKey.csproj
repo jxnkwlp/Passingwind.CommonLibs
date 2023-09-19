@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6;net7</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Passingwind.AspNetCore.Authentication.ApiKey</RootNamespace>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <FileVersion>$(AssemblyVersion)</FileVersion>
+    <AssemblyVersion>0.1</AssemblyVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Passingwind.AspNetCore.Authentication.ApiKey</PackageId>
+    <Title>Passingwind.AspNetCore.Authentication.ApiKey</Title>
+    <Authors>Passingwind</Authors>
+    <PackageProjectUrl>https://github.com/jxnkwlp/Passingwind.CommonLibs</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jxnkwlp/Passingwind.CommonLibs</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>authentication, ApiKey</PackageTags>
+    <Description>ASP.NET Core authentication handler for the ApiKey protocol</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageVersion>0.1.0</PackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
