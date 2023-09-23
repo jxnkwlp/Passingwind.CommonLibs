@@ -1,21 +1,29 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <RootNamespace>Swashbuckle.AspNetCore.SwaggerGen</RootNamespace>
-        <PackageId>Passingwind.$(AssemblyName)</PackageId>
-        <Authors>Passingwind</Authors>
-        <PackageProjectUrl>https://github.com/jxnkwlp/Passingwind.CommonLibs</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/jxnkwlp/Passingwind.CommonLibs</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-        <GenerateDocumentationFile>False</GenerateDocumentationFile>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <IncludeSymbols>True</IncludeSymbols>
-        <PackageVersion>0.4.0</PackageVersion>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Swashbuckle.AspNetCore.SwaggerGen</RootNamespace>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.4.0" />
-    </ItemGroup>
+  <PropertyGroup>
+    <PackageId>Passingwind.SwaggerExtensions</PackageId>
+    <Title>$(PackageId)</Title>
+    <Authors>Passingwind</Authors>
+    <PackageProjectUrl>https://github.com/jxnkwlp/Passingwind.CommonLibs</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jxnkwlp/Passingwind.CommonLibs</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>authentication, ApiKey</PackageTags>
+    <Description>ASP.NET Core authentication handler for the ApiKey protocol</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageVersion>0.4.0</PackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.4.0" />
+  </ItemGroup>
 
 </Project>
