@@ -51,7 +51,7 @@ jobs:
         run: dotnet restore Passingwind.CommonLibs.sln
 
       - name: dotnet build
-        run: dotnet build --no-restore -c Release Passingwind.CommonLibs.sln
+        run: dotnet build -c Release Passingwind.CommonLibs.sln
 
       - name: dotnet pack
         run: dotnet pack --no-build --no-restore -c Release --property:PackageOutputPath=${{github.workspace}}/pack_output Passingwind.CommonLibs.sln
