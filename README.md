@@ -1,6 +1,6 @@
 # Common Libs
 
-## [SwaggerExtensions](https://github.com/jxnkwlp/Passingwind.CommonLibs/tree/main/src/Passingwind.SwaggerExtensions)
+## [SwaggerExtensions](https://github.com/jxnkwlp/Passingwind.CommonLibs/tree/main/src/SwaggerExtensions)
 
 [![NuGet](https://img.shields.io/nuget/v/Passingwind.SwaggerExtensions?style=flat-square)](https://www.nuget.org/packages/Passingwind.SwaggerExtensions)
 
