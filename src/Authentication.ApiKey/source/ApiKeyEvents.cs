@@ -9,23 +9,23 @@ namespace Passingwind.AspNetCore.Authentication.ApiKey;
 public class ApiKeyEvents
 {
     /// <summary>
-    /// 
+    /// Invoked when a protocol message is first received.
     /// </summary>
     public Func<ApiKeyMessageReceivedContext, Task> OnMessageReceived { get; set; } = context => Task.CompletedTask;
     /// <summary>
-    /// 
+    /// Invoked after the security token has passed validation and a ClaimsIdentity has been generated.
     /// </summary>
     public Func<ApiKeyTokenValidatedContext, Task> OnTokenValidated { get; set; } = context => Task.CompletedTask;
     /// <summary>
-    /// 
+    /// Invoked if exceptions are thrown during request processing. The exceptions will be re-thrown after this event unless suppressed.
     /// </summary>
     public Func<ApiKeyAuthenticationFailedContext, Task> OnAuthenticationFailed { get; set; } = context => Task.CompletedTask;
     /// <summary>
-    /// 
+    /// Invoked before a challenge is sent back to the caller.
     /// </summary>
     public Func<ApiKeyChallengeContext, Task> OnChallenge { get; set; } = context => Task.CompletedTask;
     /// <summary>
-    /// 
+    /// Invoked if Authorization fails and results in a Forbidden response
     /// </summary>
     public Func<ApiKeyForbiddenContext, Task> OnForbidden { get; set; } = context => Task.CompletedTask;
 

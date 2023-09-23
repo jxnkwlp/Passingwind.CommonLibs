@@ -7,22 +7,12 @@ namespace Passingwind.AspNetCore.Authentication.ApiKey;
 /// </summary>
 public class ApiKeyOptions : AuthenticationSchemeOptions
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public string? HeaderName { get; set; }
-    /// <summary>
-    /// 
-    /// </summary>
-    public string? QueryStringName { get; set; }
-    /// <summary>
-    /// 
-    /// </summary>
-    public string? AuthenticationSchemeName { get; set; }
 
-    /// <summary>
-    /// 
-    /// </summary>
+    public string? QueryStringName { get; set; }
+
+    public string? HeaderAuthenticationSchemeName { get; set; }
+
     public string? Realm { get; set; }
 
     /// <summary>
@@ -36,22 +26,16 @@ public class ApiKeyOptions : AuthenticationSchemeOptions
     /// </summary>
     public bool SaveToken { get; set; } = true;
 
-    /// <summary>
-    /// 
-    /// </summary>
     public new ApiKeyEvents Events
     {
         get { return (ApiKeyEvents)base.Events!; }
         set { base.Events = value; }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public ApiKeyOptions()
     {
         HeaderName = ApiKeyDefaults.HeaderName;
         QueryStringName = ApiKeyDefaults.QueryStringName;
-        AuthenticationSchemeName = ApiKeyDefaults.AuthenticationSchemeName;
+        HeaderAuthenticationSchemeName = ApiKeyDefaults.HeaderAuthenticationSchemeName;
     }
 }

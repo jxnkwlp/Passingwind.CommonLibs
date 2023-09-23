@@ -7,7 +7,8 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <FileVersion>$(AssemblyVersion)</FileVersion>
-    <AssemblyVersion>0.1</AssemblyVersion>
+    <AssemblyVersion>0.2</AssemblyVersion>
+    <NoWarn>1701;1702;CS1591</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -23,7 +24,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageVersion>0.1.0</PackageVersion>
+    <PackageVersion>0.2.0</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

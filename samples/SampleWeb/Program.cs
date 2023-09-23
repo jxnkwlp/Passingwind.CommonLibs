@@ -26,7 +26,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ForwardDefaultSelector = (s) =>
     {
         var authorization = (string?)s.Request.Headers.Authorization;
-        if (authorization?.StartsWith(ApiKeyDefaults.AuthenticationSchemeName) == true)
+        if (authorization?.StartsWith(ApiKeyDefaults.HeaderAuthenticationSchemeName) == true)
             return ApiKeyDefaults.AuthenticationScheme;
 
         return IdentityConstants.ApplicationScheme;

@@ -16,33 +16,19 @@ namespace Passingwind.AspNetCore.Authentication.ApiKey;
 /// </summary>
 public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     protected IApiKeyProvider ApiKeyProvider { get; }
 
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     protected new ApiKeyEvents Events { get => (ApiKeyEvents)base.Events!; set => base.Events = value; }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="options"></param>
-    /// <param name="logger"></param>
-    /// <param name="encoder"></param>
-    /// <param name="clock"></param>
-    /// <param name="apiKeyProvider"></param>
+    /// <inheritdoc />
     public ApiKeyHandler(IOptionsMonitor<ApiKeyOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IApiKeyProvider apiKeyProvider) : base(options, logger, encoder, clock)
     {
         ApiKeyProvider = apiKeyProvider;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
+    /// <inheritdoc />
     protected override Task<object> CreateEventsAsync()
     {
         return Task.FromResult<object>(new ApiKeyEvents());
@@ -192,11 +178,7 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="properties"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
     protected override Task HandleForbiddenAsync(AuthenticationProperties properties)
     {
         var forbiddenContext = new ApiKeyForbiddenContext(Context, Scheme, Options);
@@ -204,11 +186,7 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
         return Events.ForbiddenAsync(forbiddenContext);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
     protected virtual string? GetToken(HttpRequest request)
     {
         if (!string.IsNullOrWhiteSpace(Options.QueryStringName) && request.Query.TryGetValue(Options.QueryStringName, out var queryToken))
@@ -217,21 +195,17 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
         if (!string.IsNullOrWhiteSpace(Options.HeaderName) && request.Headers.TryGetValue(Options.HeaderName, out var headerToken))
             return headerToken;
 
-        if (!string.IsNullOrWhiteSpace(Options.AuthenticationSchemeName) && request.Headers.ContainsKey(HeaderNames.Authorization) && AuthenticationHeaderValue.TryParse(request.Headers[HeaderNames.Authorization], out var headerValue))
+        if (!string.IsNullOrWhiteSpace(Options.HeaderAuthenticationSchemeName) && request.Headers.ContainsKey(HeaderNames.Authorization) && AuthenticationHeaderValue.TryParse(request.Headers[HeaderNames.Authorization], out var headerValue))
             return headerValue.Parameter;
 
         return string.Empty;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
     protected virtual bool CanHandle(HttpRequest request)
     {
         return (!string.IsNullOrWhiteSpace(Options.HeaderName) && request.Headers.ContainsKey(Options.HeaderName))
           || (!string.IsNullOrWhiteSpace(Options.QueryStringName) && request.Query.ContainsKey(Options.QueryStringName))
-          || (!string.IsNullOrWhiteSpace(Options.AuthenticationSchemeName) && AuthenticationHeaderValue.TryParse(request.Headers[HeaderNames.Authorization], out var headerValue) && headerValue.Scheme.Equals(Options.AuthenticationSchemeName, System.StringComparison.OrdinalIgnoreCase));
+          || (!string.IsNullOrWhiteSpace(Options.HeaderAuthenticationSchemeName) && AuthenticationHeaderValue.TryParse(request.Headers[HeaderNames.Authorization], out var headerValue) && headerValue.Scheme.Equals(Options.HeaderAuthenticationSchemeName, System.StringComparison.OrdinalIgnoreCase));
     }
 }
