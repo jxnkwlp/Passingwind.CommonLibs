@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ITfoxtec.Identity.Saml2" Version="4.8.8" /> 
+    <PackageReference Include="ITfoxtec.Identity.Saml2" Version="4.10.3" /> 
   </ItemGroup>
 
   <ItemGroup>
