@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -45,7 +45,7 @@ public class ConfigurationManager : IConfigurationManager
 
         if (_idpMetadataUri.IsFile)
         {
-            _ = entityDescriptor.ReadIdPSsoDescriptorFromFile(_idpMetadataUri.ToString());
+            _ = entityDescriptor.ReadIdPSsoDescriptorFromFile(_idpMetadataUri.LocalPath);
         }
         else
         {
