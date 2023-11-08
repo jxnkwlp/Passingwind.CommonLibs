@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -8,9 +8,6 @@ using ITfoxtec.Identity.Saml2.Schemas.Metadata;
 
 namespace Passingwind.AspNetCore.Authentication.Saml2.Configuration;
 
-/// <summary>
-/// 
-/// </summary>
 public class ConfigurationManager : IConfigurationManager
 {
     private Saml2Configuration? _saml2Configuration;
@@ -19,12 +16,6 @@ public class ConfigurationManager : IConfigurationManager
     private readonly Uri _idpMetadataUri;
     private readonly HttpClient _httpClient;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="options"></param>
-    /// <param name="idpMetadataUrl"></param>
-    /// <param name="httpClient"></param>
     public ConfigurationManager(Saml2Options options, Uri idpMetadataUrl, HttpClient httpClient)
     {
         _options = options;
@@ -32,17 +23,14 @@ public class ConfigurationManager : IConfigurationManager
         _httpClient = httpClient;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     public async Task<Saml2Configuration> GetConfigurationAsync(CancellationToken cancellationToken = default)
     {
         if (_saml2Configuration != null)
+        {
             return _saml2Configuration;
+        }
 
-        var configuration = new Saml2Configuration()
+        Saml2Configuration configuration = new()
         {
             Issuer = _options.Issuer,
             CertificateValidationMode = _options.CertificateValidationMode,
@@ -53,20 +41,20 @@ public class ConfigurationManager : IConfigurationManager
 
         configuration.AllowedAudienceUris.Add(configuration.Issuer);
 
-        var entityDescriptor = new EntityDescriptor();
+        EntityDescriptor entityDescriptor = new();
 
         if (_idpMetadataUri.IsFile)
         {
-            entityDescriptor.ReadIdPSsoDescriptorFromFile(_idpMetadataUri.ToString());
+            _ = entityDescriptor.ReadIdPSsoDescriptorFromFile(_idpMetadataUri.ToString());
         }
         else
         {
             // await entityDescriptor.ReadIdPSsoDescriptorFromUrlAsync(_httpClientFactory, _idpMetadata, cancellationToken);
-            var metadataGetResponse = await _httpClient.GetAsync(_idpMetadataUri, cancellationToken);
-            metadataGetResponse.EnsureSuccessStatusCode();
+            HttpResponseMessage metadataGetResponse = await _httpClient.GetAsync(_idpMetadataUri, cancellationToken);
+            _ = metadataGetResponse.EnsureSuccessStatusCode();
 
-            var metadataString = await metadataGetResponse.Content.ReadAsStringAsync(cancellationToken);
-            entityDescriptor.ReadIdPSsoDescriptor(metadataString);
+            string metadataString = await metadataGetResponse.Content.ReadAsStringAsync(cancellationToken);
+            _ = entityDescriptor.ReadIdPSsoDescriptor(metadataString);
         }
 
         if (entityDescriptor.IdPSsoDescriptor != null)
@@ -76,7 +64,7 @@ public class ConfigurationManager : IConfigurationManager
             configuration.SingleSignOnDestination = entityDescriptor.IdPSsoDescriptor.SingleSignOnServices.First().Location;
             configuration.SingleLogoutDestination = entityDescriptor.IdPSsoDescriptor.SingleLogoutServices.First().Location;
 
-            foreach (var signingCertificate in entityDescriptor.IdPSsoDescriptor.SigningCertificates)
+            foreach (System.Security.Cryptography.X509Certificates.X509Certificate2? signingCertificate in entityDescriptor.IdPSsoDescriptor.SigningCertificates)
             {
                 if (signingCertificate.IsValidLocalTime())
                 {

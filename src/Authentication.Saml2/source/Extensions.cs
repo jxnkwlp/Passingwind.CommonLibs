@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using Microsoft.AspNetCore.Http;
@@ -21,19 +21,11 @@ internal static class Extensions
 
     private static NameValueCollection ToNameValueCollection(IEnumerable<KeyValuePair<string, StringValues>> items)
     {
-        var nv = new NameValueCollection();
-        foreach (var item in items)
+        NameValueCollection nv = new();
+        foreach (KeyValuePair<string, StringValues> item in items)
         {
             nv.Add(item.Key, item.Value[0]);
         }
         return nv;
     }
-
-    //private static async Task<string> ReadBodyStringAsync(HttpRequest request)
-    //{
-    //    using (var reader = new StreamReader(request.Body))
-    //    {
-    //        return await reader.ReadToEndAsync();
-    //    }
-    //}
 }

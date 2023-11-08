@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net.Http;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
@@ -7,27 +7,15 @@ using Passingwind.AspNetCore.Authentication.Saml2.Configuration;
 
 namespace Passingwind.AspNetCore.Authentication.Saml2;
 
-/// <summary>
-/// 
-/// </summary>
 public class Saml2PostConfigureOptions : IPostConfigureOptions<Saml2Options>
 {
     private readonly IDataProtectionProvider _dp;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="dp"></param>
     public Saml2PostConfigureOptions(IDataProtectionProvider dp)
     {
         _dp = dp;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="name"></param>
-    /// <param name="options"></param>
     public void PostConfigure(string name, Saml2Options options)
     {
         if (string.IsNullOrEmpty(name))
@@ -57,7 +45,7 @@ public class Saml2PostConfigureOptions : IPostConfigureOptions<Saml2Options>
 
         if (options.StateDataFormat == null)
         {
-            var dataProtector = options.DataProtectionProvider.CreateProtector(typeof(Saml2Handler).FullName!, name, "v1");
+            IDataProtector dataProtector = options.DataProtectionProvider.CreateProtector(typeof(Saml2Handler).FullName!, name, "v1");
             options.StateDataFormat = new PropertiesDataFormat(dataProtector);
         }
 

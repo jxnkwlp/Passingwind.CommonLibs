@@ -12,48 +12,28 @@ using Microsoft.Extensions.Options;
 
 namespace Passingwind.AspNetCore.Authentication.Saml2;
 
-/// <summary>
-/// 
-/// </summary>
 public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenticationSignOutHandler
 {
-    private Saml2Configuration? _configuration;
     private const string RelayStateName = "State";
     private const string CorrelationProperty = ".xsrf";
 
-    /// <summary>
-    /// 
-    /// </summary>
+    private Saml2Configuration? _configuration;
+
     protected new Saml2Events Events
     {
-        get { return (Saml2Events)base.Events; }
-        set { base.Events = value; }
+        get => (Saml2Events)base.Events;
+        set => base.Events = value;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="options"></param>
-    /// <param name="logger"></param>
-    /// <param name="encoder"></param>
-    /// <param name="clock"></param>
     public Saml2Handler(IOptionsMonitor<Saml2Options> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
     {
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="properties"></param>
-    /// <returns></returns>
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {
         properties ??= new AuthenticationProperties();
 
-        if (_configuration == null)
-        {
-            _configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
-        }
+        _configuration ??= await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
 
         // Save the original challenge URI so we can redirect back to it when we're done.
         if (string.IsNullOrEmpty(properties.RedirectUri))
@@ -61,32 +41,29 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
             properties.RedirectUri = OriginalPathBase + OriginalPath + Request.QueryString;
         }
 
-        var saml2AuthnRequest = new Saml2AuthnRequest(_configuration)
+        GenerateCorrelationId(properties);
+
+        Saml2AuthnRequest saml2AuthnRequest = new(_configuration)
         {
             ForceAuthn = Options.ForceAuthn,
-            NameIdPolicy = Options.NameIdPolicy,
-            RequestedAuthnContext = new RequestedAuthnContext
-            {
-                Comparison = AuthnContextComparisonTypes.Exact,
-                AuthnContextClassRef = new string[] { AuthnContextClassTypes.PasswordProtectedTransport.OriginalString },
-            }
         };
 
-        var relayStateQuery = new Dictionary<string, string>();
+        Dictionary<string, string> relayStateQuery = new();
 
         if (!string.IsNullOrEmpty(properties.RedirectUri))
+        {
             relayStateQuery[Options.ReturnUrlParameter] = properties.RedirectUri;
+        }
 
         relayStateQuery[RelayStateName] = Options.StateDataFormat.Protect(properties);
 
-        GenerateCorrelationId(properties);
+        Saml2RedirectBinding binding = new();
 
-        var binding = new Saml2RedirectBinding();
         binding.SetRelayStateQuery(relayStateQuery);
 
         binding = binding.Bind(saml2AuthnRequest);
 
-        var redirectContext = new RedirectContext(Context, Scheme, Options, properties)
+        RedirectContext redirectContext = new(Context, Scheme, Options, properties)
         {
             Saml2AuthnRequest = saml2AuthnRequest,
             RedirectBinding = binding,
@@ -104,38 +81,25 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
         Response.Redirect(binding.RedirectLocation.OriginalString);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="properties"></param>
-    /// <returns></returns>
     public Task SignOutAsync(AuthenticationProperties? properties)
     {
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
     protected override async Task<HandleRequestResult> HandleRemoteAuthenticateAsync()
     {
-        if (_configuration == null)
-        {
-            _configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
-        }
+        _configuration ??= await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
 
-        var saml2AuthnResponse = new Saml2AuthnResponse(_configuration);
+        Saml2AuthnResponse saml2AuthnResponse = new(_configuration);
 
         AuthenticationProperties? properties = null;
 
-        var relayStateQuery = new Dictionary<string, string>();
-
         try
         {
+            Dictionary<string, string> relayStateQuery;
             if (Request.Method == HttpMethods.Get)
             {
-                var binding = new Saml2RedirectBinding();
+                Saml2RedirectBinding binding = new();
 
                 var saml2Request = Request.ToGenericHttpRequest();
 
@@ -145,7 +109,7 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
             }
             else if (Request.Method == HttpMethods.Post)
             {
-                var binding = new Saml2PostBinding();
+                Saml2PostBinding binding = new();
 
                 var saml2Request = Request.ToGenericHttpRequest();
 
@@ -163,11 +127,11 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
                 throw new AuthenticationException("Saml2 response missing relay state ");
             }
 
-            var state = relayStateQuery[RelayStateName];
+            string state = relayStateQuery[RelayStateName];
 
             properties = Options.StateDataFormat.Unprotect(state);
 
-            var messageReceivedContext = new MessageReceivedContext(Context, Scheme, Options, properties)
+            MessageReceivedContext messageReceivedContext = new(Context, Scheme, Options, properties)
             {
                 Saml2AuthnResponse = saml2AuthnResponse
             };
@@ -192,9 +156,9 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
                 return HandleRequestResult.Fail($"Saml2 response status: {saml2AuthnResponse.Status}", properties);
             }
 
-            ClaimsPrincipal? principal = new ClaimsPrincipal(saml2AuthnResponse.ClaimsIdentity);
+            ClaimsPrincipal? principal = new(saml2AuthnResponse.ClaimsIdentity);
 
-            var securityTokenReceivedContext = new SecurityTokenReceivedContext(Context, Scheme, Options, properties)
+            SecurityTokenReceivedContext securityTokenReceivedContext = new(Context, Scheme, Options, properties)
             {
                 Saml2AuthnResponse = saml2AuthnResponse
             };
@@ -204,7 +168,7 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
                 return securityTokenReceivedContext.Result;
             }
 
-            var securityTokenValidatedContext = new SecurityTokenValidatedContext(Context, Scheme, Options, principal, properties)
+            SecurityTokenValidatedContext securityTokenValidatedContext = new(Context, Scheme, Options, principal, properties)
             {
                 Saml2AuthnResponse = saml2AuthnResponse,
             };
@@ -225,7 +189,7 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
         {
             Logger.LogError(ex, "Exception occurred while processing message");
 
-            var authenticationFailedContext = new AuthenticationFailedContext(Context, Scheme, Options)
+            AuthenticationFailedContext authenticationFailedContext = new(Context, Scheme, Options)
             {
                 Saml2AuthnResponse = saml2AuthnResponse,
                 Exception = ex
