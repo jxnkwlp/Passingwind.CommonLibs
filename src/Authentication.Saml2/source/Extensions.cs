@@ -8,7 +8,7 @@ namespace Passingwind.AspNetCore.Authentication.Saml2;
 
 internal static class Extensions
 {
-    public static ITfoxtec.Identity.Saml2.Http.HttpRequest ToGenericHttpRequest(this HttpRequest request, bool readBodyAsString = false)
+    public static ITfoxtec.Identity.Saml2.Http.HttpRequest ToGenericHttpRequest(this HttpRequest request)
     {
         return new ITfoxtec.Identity.Saml2.Http.HttpRequest
         {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -27,6 +28,18 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
 
     public Saml2Handler(IOptionsMonitor<Saml2Options> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
     {
+    }
+
+    public override async Task<bool> HandleRequestAsync()
+    {
+        if (Options.RemoteSignOutPath.HasValue && Options.RemoteSignOutPath == Request.Path)
+        {
+            await HandleSignOutAsync(new AuthenticationProperties());
+
+            return true;
+        }
+
+        return await base.HandleRequestAsync();
     }
 
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
@@ -83,7 +96,48 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
 
     public Task SignOutAsync(AuthenticationProperties? properties)
     {
-        return Task.CompletedTask;
+        var target = ResolveTarget(Options.ForwardSignOut);
+        return (target != null)
+            ? Context.SignOutAsync(target, properties)
+            : HandleSignOutAsync(properties ?? new AuthenticationProperties());
+    }
+
+    protected virtual async Task HandleSignOutAsync(AuthenticationProperties? properties)
+    {
+        _configuration ??= await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
+
+        Saml2StatusCodes status;
+        var requestBinding = new Saml2PostBinding();
+        var logoutRequest = new Saml2LogoutRequest(_configuration, Context.User);
+
+        try
+        {
+            requestBinding.Unbind(Request.ToGenericHttpRequest(), logoutRequest);
+            status = Saml2StatusCodes.Success;
+
+            await Context.SignOutAsync(Options.SignOutScheme);
+        }
+        catch (Exception exc)
+        {
+            Logger.LogError(exc, "Saml2 single logout error");
+            status = Saml2StatusCodes.RequestDenied;
+        }
+
+        var responseBinding = new Saml2PostBinding
+        {
+            RelayState = requestBinding.RelayState
+        };
+
+        var saml2LogoutResponse = new Saml2LogoutResponse(_configuration)
+        {
+            InResponseToAsString = logoutRequest.IdAsString,
+            Status = status,
+        };
+        responseBinding = responseBinding.Bind(saml2LogoutResponse);
+
+        Response.Headers.CacheControl = "no-cache, no-store";
+        Response.ContentType = "text/html";
+        await Response.WriteAsync(responseBinding.PostContent);
     }
 
     protected override async Task<HandleRequestResult> HandleRemoteAuthenticateAsync()
