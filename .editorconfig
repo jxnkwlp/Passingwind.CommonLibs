@@ -489,10 +489,14 @@ roslynator_refactorings.enabled = true
 roslynator_compiler_diagnostic_fixes.enabled = true
 tab_width = 4
 
-#
+# default|none|silent|suggestion|warning|error
 dotnet_diagnostic.CA1848.severity = silent
 dotnet_diagnostic.CA1305.severity = silent
 dotnet_diagnostic.CA2016.severity = warning
+dotnet_diagnostic.RCS1163.severity = silent
+dotnet_diagnostic.RCS1228.severity = silent
+dotnet_diagnostic.RCS1141.severity = silent
+dotnet_diagnostic.RCS1006.severity = suggestion
 
 [{*.har,*.jsb2,*.jsb3,*.json,.babelrc,.eslintrc,.stylelintrc,bowerrc,jest.config}]
 indent_style = space

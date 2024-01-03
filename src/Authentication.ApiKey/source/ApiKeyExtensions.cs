@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -14,6 +14,7 @@ public static class ApiKeyExtensions
     /// <summary>
     /// Enables ApiKey authentication using the default scheme
     /// </summary>
+    /// <typeparam name="TApiKeyProvider"></typeparam>
     public static AuthenticationBuilder AddApiKey<TApiKeyProvider>(this AuthenticationBuilder builder) where TApiKeyProvider : class, IApiKeyProvider
     {
         return AddApiKey<TApiKeyProvider>(builder: builder, authenticationScheme: ApiKeyDefaults.AuthenticationScheme, displayName: null, configureOptions: _ => { });
@@ -22,6 +23,7 @@ public static class ApiKeyExtensions
     /// <summary>
     /// Enables ApiKey authentication
     /// </summary>
+    /// <typeparam name="TApiKeyProvider"></typeparam>
     public static AuthenticationBuilder AddApiKey<TApiKeyProvider>(this AuthenticationBuilder builder, string authenticationScheme) where TApiKeyProvider : class, IApiKeyProvider
     {
         return AddApiKey<TApiKeyProvider>(builder: builder, authenticationScheme: authenticationScheme, displayName: null, configureOptions: _ => { });
@@ -30,6 +32,7 @@ public static class ApiKeyExtensions
     /// <summary>
     /// Enables ApiKey authentication
     /// </summary>
+    /// <typeparam name="TApiKeyProvider"></typeparam>
     public static AuthenticationBuilder AddApiKey<TApiKeyProvider>(this AuthenticationBuilder builder, Action<ApiKeyOptions> configureOptions) where TApiKeyProvider : class, IApiKeyProvider
     {
         return AddApiKey<TApiKeyProvider>(builder: builder, authenticationScheme: ApiKeyDefaults.AuthenticationScheme, displayName: null, configureOptions: configureOptions);
@@ -38,6 +41,7 @@ public static class ApiKeyExtensions
     /// <summary>
     /// Enables ApiKey authentication
     /// </summary>
+    /// <typeparam name="TApiKeyProvider"></typeparam>
     public static AuthenticationBuilder AddApiKey<TApiKeyProvider>(this AuthenticationBuilder builder, string authenticationScheme, Action<ApiKeyOptions> configureOptions) where TApiKeyProvider : class, IApiKeyProvider
     {
         return AddApiKey<TApiKeyProvider>(builder: builder, authenticationScheme: authenticationScheme, displayName: null, configureOptions: configureOptions);
@@ -46,6 +50,7 @@ public static class ApiKeyExtensions
     /// <summary>
     /// Enables ApiKey authentication
     /// </summary>
+    /// <typeparam name="TApiKeyProvider"></typeparam>
     public static AuthenticationBuilder AddApiKey<TApiKeyProvider>(this AuthenticationBuilder builder, string authenticationScheme, string? displayName, Action<ApiKeyOptions> configureOptions) where TApiKeyProvider : class, IApiKeyProvider
     {
         builder.Services.TryAddTransient<IApiKeyProvider, TApiKeyProvider>();

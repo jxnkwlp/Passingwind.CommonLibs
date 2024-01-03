@@ -1,52 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\..\..\common.props"/>
+
   <PropertyGroup>
-    <TargetFrameworks>net6;net7</TargetFrameworks>
-    <Nullable>enable</Nullable>
+    <TargetFrameworks>net6;net7;net8</TargetFrameworks> 
     <RootNamespace>Passingwind.AspNetCore.Authentication.Saml2</RootNamespace>
-    <AnalysisLevel>latest-minimum</AnalysisLevel>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <NoWarn>1701;1702;CS1591</NoWarn>
     <FileVersion>$(Version)</FileVersion>
     <Version>0.2.0</Version>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>Passingwind.AspNetCore.Authentication.Saml2</PackageId>
-    <Title>Passingwind.AspNetCore.Authentication.Saml2</Title>
-    <Authors>Passingwind</Authors>
-    <PackageProjectUrl>https://github.com/jxnkwlp/Passingwind.CommonLibs</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/jxnkwlp/Passingwind.CommonLibs</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
+    <Title>Passingwind.AspNetCore.Authentication.Saml2</Title> 
     <PackageTags>authentication, SAML2</PackageTags>
-    <Description>ASP.NET Core authentication handler for the SAML2 protocol</Description>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <IncludeSymbols>True</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageVersion>0.2.1</PackageVersion>    
+    <Description>ASP.NET Core authentication handler for the SAML2 protocol</Description> 
+    <PackageVersion>0.3.0</PackageVersion>    
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ITfoxtec.Identity.Saml2" Version="4.8.8" /> 
+    <PackageReference Include="ITfoxtec.Identity.Saml2" Version="4.10.7" /> 
   </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
+  
 </Project>

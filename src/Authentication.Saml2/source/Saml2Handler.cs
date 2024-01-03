@@ -16,7 +16,6 @@ namespace Passingwind.AspNetCore.Authentication.Saml2;
 public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenticationSignOutHandler
 {
     private const string RelayStateName = "State";
-    private const string CorrelationProperty = ".xsrf";
 
     private Saml2Configuration? _configuration;
 
@@ -26,9 +25,23 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
         set => base.Events = value;
     }
 
+#if NET8_0_OR_GREATER
+    /// <inheritdoc />
+    public Saml2Handler(IOptionsMonitor<Saml2Options> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
+    {
+    }
+    /// <inheritdoc />
+    [Obsolete("ISystemClock is obsolete, use TimeProvider on AuthenticationSchemeOptions instead.")]
     public Saml2Handler(IOptionsMonitor<Saml2Options> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
     {
     }
+
+#else
+    /// <inheritdoc />
+    public Saml2Handler(IOptionsMonitor<Saml2Options> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
+    {
+    }
+#endif
 
     public override async Task<bool> HandleRequestAsync()
     {
@@ -54,19 +67,19 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
             properties.RedirectUri = OriginalPathBase + OriginalPath + Request.QueryString;
         }
 
-        GenerateCorrelationId(properties);
-
         Saml2AuthnRequest saml2AuthnRequest = new(_configuration)
         {
             ForceAuthn = Options.ForceAuthn,
         };
 
-        Dictionary<string, string> relayStateQuery = new();
+        Dictionary<string, string> relayStateQuery = [];
 
         if (!string.IsNullOrEmpty(properties.RedirectUri))
         {
             relayStateQuery[Options.ReturnUrlParameter] = properties.RedirectUri;
         }
+
+        GenerateCorrelationId(properties);
 
         relayStateQuery[RelayStateName] = Options.StateDataFormat.Protect(properties);
 
@@ -96,7 +109,7 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
 
     public Task SignOutAsync(AuthenticationProperties? properties)
     {
-        var target = ResolveTarget(Options.ForwardSignOut);
+        string? target = ResolveTarget(Options.ForwardSignOut);
         return (target != null)
             ? Context.SignOutAsync(target, properties)
             : HandleSignOutAsync(properties ?? new AuthenticationProperties());
@@ -107,8 +120,8 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
         _configuration ??= await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
 
         Saml2StatusCodes status;
-        var requestBinding = new Saml2PostBinding();
-        var logoutRequest = new Saml2LogoutRequest(_configuration, Context.User);
+        Saml2PostBinding requestBinding = new();
+        Saml2LogoutRequest logoutRequest = new(_configuration, Context.User);
 
         try
         {
@@ -123,12 +136,12 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
             status = Saml2StatusCodes.RequestDenied;
         }
 
-        var responseBinding = new Saml2PostBinding
+        Saml2PostBinding responseBinding = new()
         {
             RelayState = requestBinding.RelayState
         };
 
-        var saml2LogoutResponse = new Saml2LogoutResponse(_configuration)
+        Saml2LogoutResponse saml2LogoutResponse = new(_configuration)
         {
             InResponseToAsString = logoutRequest.IdAsString,
             Status = status,
@@ -176,14 +189,12 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
                 throw new AuthenticationException($"Saml2 response method '{Request.Method}' not support");
             }
 
-            if (!relayStateQuery.ContainsKey(RelayStateName))
+            if (!relayStateQuery.TryGetValue(RelayStateName, out string? relayStateValue))
             {
                 throw new AuthenticationException("Saml2 response missing relay state ");
             }
 
-            string state = relayStateQuery[RelayStateName];
-
-            properties = Options.StateDataFormat.Unprotect(state);
+            properties = Options.StateDataFormat.Unprotect(relayStateValue);
 
             MessageReceivedContext messageReceivedContext = new(Context, Scheme, Options, properties)
             {
@@ -198,9 +209,7 @@ public class Saml2Handler : RemoteAuthenticationHandler<Saml2Options>, IAuthenti
             saml2AuthnResponse = messageReceivedContext.Saml2AuthnResponse;
             properties = messageReceivedContext.Properties!; // Provides a new instance if not set.
 
-            // If state did flow from the challenge then validate it. See AllowUnsolicitedLogins above.
-            if (properties.Items.TryGetValue(CorrelationProperty, out string? correlationId)
-                && !ValidateCorrelationId(properties))
+            if (!ValidateCorrelationId(properties))
             {
                 return HandleRequestResult.Fail("Correlation failed.", properties);
             }

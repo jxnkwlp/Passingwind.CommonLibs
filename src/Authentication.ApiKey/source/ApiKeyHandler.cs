@@ -1,3 +1,4 @@
+﻿using System;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
@@ -22,11 +23,30 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
     /// <inheritdoc />
     protected new ApiKeyEvents Events { get => (ApiKeyEvents)base.Events!; set => base.Events = value; }
 
+#if NET8_0_OR_GREATER
     /// <inheritdoc />
+    [Obsolete("ISystemClock is obsolete, use TimeProvider on AuthenticationSchemeOptions instead.")]
     public ApiKeyHandler(IOptionsMonitor<ApiKeyOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IApiKeyProvider apiKeyProvider) : base(options, logger, encoder, clock)
     {
         ApiKeyProvider = apiKeyProvider;
     }
+    /// <inheritdoc />
+    public ApiKeyHandler(IOptionsMonitor<ApiKeyOptions> options, ILoggerFactory logger, UrlEncoder encoder, IApiKeyProvider apiKeyProvider) : base(options, logger, encoder)
+    {
+        ApiKeyProvider = apiKeyProvider;
+    }
+#else
+    /// <inheritdoc />
+    public ApiKeyHandler(
+        IOptionsMonitor<ApiKeyOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder,
+        ISystemClock clock,
+        IApiKeyProvider apiKeyProvider) : base(options, logger, encoder, clock)
+    {
+        ApiKeyProvider = apiKeyProvider;
+    }
+#endif
 
     /// <inheritdoc />
     protected override Task<object> CreateEventsAsync()
@@ -37,16 +57,18 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
     /// <inheritdoc />
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var messageReceivedContext = new ApiKeyMessageReceivedContext(Context, Scheme, Options);
+        ApiKeyMessageReceivedContext messageReceivedContext = new(Context, Scheme, Options);
 
         await Events.MessageReceivedAsync(messageReceivedContext).ConfigureAwait(false);
 
         if (messageReceivedContext.Result != null)
+        {
             return messageReceivedContext.Result;
+        }
 
-        var request = Request;
+        HttpRequest request = Request;
 
-        var isApiKeyAvailable = CanHandle(request);
+        bool isApiKeyAvailable = CanHandle(request);
 
         if (!isApiKeyAvailable)
         {
@@ -59,38 +81,29 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
         {
             return AuthenticateResult.NoResult();
         }
-        else
-        {
-            Logger.LogDebug("The Api Key '{token}' was found in the request.", token);
-        }
+
+        Logger.LogDebug("The Api Key '{token}' was found in the request.", token);
 
         try
         {
-            var validationResult = await ApiKeyProvider.ValidateAsync(token).ConfigureAwait(false);
+            ApiKeyValidationResult validationResult = await ApiKeyProvider.ValidateAsync(token).ConfigureAwait(false);
 
             if (validationResult.Exception != null)
             {
-                Logger.LogError(validationResult.Exception, "The API Key verification failed by {0}.", ApiKeyProvider.GetType().Name);
+                Logger.LogError(validationResult.Exception, "The API Key verification failed by {Name}.", ApiKeyProvider.GetType().Name);
 
-                var authenticationFailedContext = new ApiKeyAuthenticationFailedContext(Context, Scheme, Options) { Exception = validationResult.Exception };
+                ApiKeyAuthenticationFailedContext authenticationFailedContext = new(Context, Scheme, Options) { Exception = validationResult.Exception };
 
                 await Events.AuthenticationFailedAsync(authenticationFailedContext).ConfigureAwait(false);
 
-                if (authenticationFailedContext.Result != null)
-                {
-                    return authenticationFailedContext.Result;
-                }
-
-                return AuthenticateResult.Fail(authenticationFailedContext.Exception);
-            }
-            else
-            {
-                Logger.LogInformation("The API Key verification successful by {0}.", ApiKeyProvider.GetType().Name);
+                return authenticationFailedContext.Result ?? AuthenticateResult.Fail(authenticationFailedContext.Exception);
             }
 
-            var identity = validationResult.Identity;
+            Logger.LogInformation("The API Key verification successful by {Name}.", ApiKeyProvider.GetType().Name);
 
-            var tokenValidatedContext = new ApiKeyTokenValidatedContext(Context, Scheme, Options)
+            ClaimsIdentity identity = validationResult.Identity;
+
+            ApiKeyTokenValidatedContext tokenValidatedContext = new(Context, Scheme, Options)
             {
                 Token = token,
                 Principal = new ClaimsPrincipal(identity),
@@ -99,7 +112,9 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
             await Events.TokenValidatedAsync(tokenValidatedContext).ConfigureAwait(false);
 
             if (tokenValidatedContext.Result != null)
+            {
                 return tokenValidatedContext.Result;
+            }
 
             if (Options.SaveToken)
             {
@@ -112,9 +127,9 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
         }
         catch (System.Exception exception)
         {
-            Logger.LogError("Exception occurred while processing message.", exception);
+            Logger.LogError(exception, "Exception occurred while processing message.");
 
-            var authenticationFailedContext = new ApiKeyAuthenticationFailedContext(Context, Scheme, Options) { Exception = exception };
+            ApiKeyAuthenticationFailedContext authenticationFailedContext = new(Context, Scheme, Options) { Exception = exception };
 
             await Events.AuthenticationFailedAsync(authenticationFailedContext).ConfigureAwait(false);
 
@@ -130,9 +145,9 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
     /// <inheritdoc />
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {
-        var authResult = await HandleAuthenticateOnceSafeAsync().ConfigureAwait(false);
+        AuthenticateResult authResult = await HandleAuthenticateOnceSafeAsync().ConfigureAwait(false);
 
-        var eventContext = new ApiKeyChallengeContext(Context, Scheme, Options, properties)
+        ApiKeyChallengeContext eventContext = new(Context, Scheme, Options, properties)
         {
             AuthenticateFailure = authResult?.Failure
         };
@@ -154,11 +169,11 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
         {
             // WWW-Authenticate: ApiKey realm="example", charset="UTF-8", in="authorization_header", in="header_or_query_params", key_name="mykey";
 
-            var builder = new StringBuilder(Options.Challenge);
+            StringBuilder builder = new(Options.Challenge);
 
             if (!string.IsNullOrWhiteSpace(Options.Realm))
             {
-                builder.Append($"realm=\"{Options.Realm}\"");
+                builder.Append("realm=\"").Append(Options.Realm).Append('\"');
             }
             if (Options.Challenge.IndexOf(' ') > 0)
             {
@@ -167,9 +182,9 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
             }
             if (!string.IsNullOrEmpty(eventContext.Error))
             {
-                builder.Append(" error=\"");
-                builder.Append(eventContext.Error);
-                builder.Append('\"');
+                builder.Append(" error=\"")
+                    .Append(eventContext.Error)
+                    .Append('\"');
             }
 
             // TODO
@@ -181,7 +196,7 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
     /// <inheritdoc />
     protected override Task HandleForbiddenAsync(AuthenticationProperties properties)
     {
-        var forbiddenContext = new ApiKeyForbiddenContext(Context, Scheme, Options);
+        ApiKeyForbiddenContext forbiddenContext = new(Context, Scheme, Options);
 
         return Events.ForbiddenAsync(forbiddenContext);
     }
@@ -189,14 +204,20 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
     /// <inheritdoc />
     protected virtual string? GetToken(HttpRequest request)
     {
-        if (!string.IsNullOrWhiteSpace(Options.QueryStringName) && request.Query.TryGetValue(Options.QueryStringName, out var queryToken))
-            return queryToken;
+        if (!string.IsNullOrWhiteSpace(Options.QueryStringName) && request.Query.TryGetValue(Options.QueryStringName, out Microsoft.Extensions.Primitives.StringValues queryToken))
+        {
+            return (string?)queryToken;
+        }
 
-        if (!string.IsNullOrWhiteSpace(Options.HeaderName) && request.Headers.TryGetValue(Options.HeaderName, out var headerToken))
-            return headerToken;
+        if (!string.IsNullOrWhiteSpace(Options.HeaderName) && request.Headers.TryGetValue(Options.HeaderName, out Microsoft.Extensions.Primitives.StringValues headerToken))
+        {
+            return (string?)headerToken;
+        }
 
-        if (!string.IsNullOrWhiteSpace(Options.HeaderAuthenticationSchemeName) && request.Headers.ContainsKey(HeaderNames.Authorization) && AuthenticationHeaderValue.TryParse(request.Headers[HeaderNames.Authorization], out var headerValue))
+        if (!string.IsNullOrWhiteSpace(Options.HeaderAuthenticationSchemeName) && request.Headers.TryGetValue(HeaderNames.Authorization, out Microsoft.Extensions.Primitives.StringValues value) && AuthenticationHeaderValue.TryParse(value, out AuthenticationHeaderValue? headerValue))
+        {
             return headerValue.Parameter;
+        }
 
         return string.Empty;
     }
@@ -206,6 +227,6 @@ public class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
     {
         return (!string.IsNullOrWhiteSpace(Options.HeaderName) && request.Headers.ContainsKey(Options.HeaderName))
           || (!string.IsNullOrWhiteSpace(Options.QueryStringName) && request.Query.ContainsKey(Options.QueryStringName))
-          || (!string.IsNullOrWhiteSpace(Options.HeaderAuthenticationSchemeName) && AuthenticationHeaderValue.TryParse(request.Headers[HeaderNames.Authorization], out var headerValue) && headerValue.Scheme.Equals(Options.HeaderAuthenticationSchemeName, System.StringComparison.OrdinalIgnoreCase));
+          || (!string.IsNullOrWhiteSpace(Options.HeaderAuthenticationSchemeName) && AuthenticationHeaderValue.TryParse(request.Headers[HeaderNames.Authorization], out AuthenticationHeaderValue? headerValue) && headerValue.Scheme.Equals(Options.HeaderAuthenticationSchemeName, System.StringComparison.OrdinalIgnoreCase));
     }
 }

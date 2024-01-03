@@ -16,17 +16,14 @@ public class Saml2PostConfigureOptions : IPostConfigureOptions<Saml2Options>
         _dp = dp;
     }
 
-    public void PostConfigure(string name, Saml2Options options)
+    public void PostConfigure(string? name, Saml2Options options)
     {
         if (string.IsNullOrEmpty(name))
         {
             throw new ArgumentException($"'{nameof(name)}' cannot be null or empty.", nameof(name));
         }
 
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         if (string.IsNullOrEmpty(options.SignOutScheme))
         {
@@ -38,7 +35,7 @@ public class Saml2PostConfigureOptions : IPostConfigureOptions<Saml2Options>
         if (options.Backchannel == null)
         {
             options.Backchannel = new HttpClient(options.BackchannelHttpHandler ?? new HttpClientHandler());
-            options.Backchannel.DefaultRequestHeaders.UserAgent.ParseAdd("Saml2 handler");
+            options.Backchannel.DefaultRequestHeaders.UserAgent.ParseAdd("SAML2 handler");
             options.Backchannel.Timeout = options.BackchannelTimeout;
             options.Backchannel.MaxResponseContentBufferSize = 1024 * 1024 * 10; // 10 MB 
         }
